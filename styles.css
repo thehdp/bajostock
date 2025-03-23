@@ -302,6 +302,7 @@ body.dark-theme .theme-toggle {
 
 .delete-button {
     background-color: #dc3545 !important;
+    width: 160px !important;
 }
 
 /* Efecto hover para íconos */
