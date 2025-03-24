@@ -1,6 +1,6 @@
 /* Tema claro (por defecto) */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f4f4;
     color: #333;
     margin: 0;
@@ -230,6 +230,9 @@ body.dark-theme .delete-button:hover {
 
 /* Botón modo oscuro más pequeño */
 .theme-toggle {
+    color: #00b4d8 !important;  /* Color celeste */
+    background: transparent !important;
+    border: 2px solid #00b4d8 !important;
     padding: 8px 8px !important;
     font-size: 18px;
     width: 40px;
@@ -239,7 +242,9 @@ body.dark-theme .delete-button:hover {
 }
 
 .theme-toggle:hover {
-    color: #218838;
+    color: #0096c7 !important;  /* Celeste más oscuro */
+    border-color: #0096c7 !important;
+    background-color: rgba(0, 180, 216, 0.1) !important;
 }
 
 body.dark-theme .theme-toggle {
@@ -285,8 +290,8 @@ body.dark-theme .theme-toggle {
 
 /* Espaciado entre botones y lista */
 .buttons {
-    margin-bottom: 20px;  /* Espacio adicional debajo de los botones */
-    gap: 10px;            /* Espacio entre botones */
+    margin-bottom: 20px; /* Espacio adicional debajo de los botones */
+    gap: 10px; /* Espacio entre botones */
     display: flex;
     justify-content: center;
 }
@@ -371,26 +376,32 @@ body.dark-theme #searchInput {
 
 /* Botón Guardar Excel - Verde con icono de guardar */
 .excel-save-btn {
-    background-color: #28a745 !important; 
+    background-color: #28a745 !important;
     width: 160px !important;
 }
 
 /* Botón Cargar Excel - Naranja */
 .excel-load-btn {
-    background-color: #ff6b35 !important; 
+    background-color: #ff6b35 !important;
     width: 160px !important;
 }
 
 /* Botón Cargar Nube - Morado */
 .cloud-load-btn {
-    background-color: #6f42c1 !important; 
+    background-color: #6f42c1 !important;
     width: 40px !important;
 }
 
 /* Efectos hover */
-.excel-save-btn:hover { background-color: #218838 !important; }
-.excel-load-btn:hover { background-color: #e65c2e !important; }
-.cloud-load-btn:hover { background-color: #5a3d8c !important; }
+.excel-save-btn:hover {
+    background-color: #218838 !important;
+}
+.excel-load-btn:hover {
+    background-color: #e65c2e !important;
+}
+.cloud-load-btn:hover {
+    background-color: #5a3d8c !important;
+}
 
 /* Alineación ícono-texto en todos los botones */
 .buttons button {
