@@ -96,10 +96,18 @@ window.loadFromCloud = async function() {
 };
 // ========== FUNCIONES AUXILIARES ========== //
 function filterItems() {
-    const term = searchInput.value.toLowerCase();
+    const term = searchInput.value.trim().toLowerCase();
+    
+    // Dividir el término de búsqueda en palabras individuales
+    const searchWords = term.split(' ').filter(word => word.length > 0);
+    
     Array.from(itemList.children).forEach(li => {
         const text = li.querySelector('span').textContent.toLowerCase();
-        li.style.display = text.includes(term) ? 'flex' : 'none';
+        
+        // Verificar si TODAS las palabras existen en el texto
+        const match = searchWords.every(word => text.includes(word));
+        
+        li.style.display = match ? 'flex' : 'none';
     });
 }
 
@@ -149,10 +157,18 @@ function hideLoader() {
 }
 
 function filterItems() {
-    const term = searchInput.value.toLowerCase();
+    const term = searchInput.value.trim().toLowerCase();
+    
+    // Dividir el término de búsqueda en palabras individuales
+    const searchWords = term.split(' ').filter(word => word.length > 0);
+    
     Array.from(itemList.children).forEach(li => {
         const text = li.querySelector('span').textContent.toLowerCase();
-        li.style.display = text.includes(term) ? 'flex' : 'none';
+        
+        // Verificar si TODAS las palabras existen en el texto
+        const match = searchWords.every(word => text.includes(word));
+        
+        li.style.display = match ? 'flex' : 'none';
     });
 }
 
