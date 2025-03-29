@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         await window.authReady; // Espera a la autenticación
-        await loadFromCloud(); // Carga los datos
-        setTimeout(saveFile, 1000); // Descarga tras 1 segundo (evita bloqueo)
+        await loadFromCloud(); // Solo carga los datos, sin descargar
     } catch (error) {
         showToast('❌ Error al cargar datos');
         console.error(error);
