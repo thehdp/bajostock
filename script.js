@@ -1,24 +1,25 @@
-// Variables globales (declaradas una sola vez)
 let itemList, searchInput, loader, toast;
 
-// ========== INICIALIZACIÓN ========== //
-document.addEventListener('DOMContentLoaded', () => {
-
+document.addEventListener('DOMContentLoaded', async () => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.body.classList.toggle('dark-theme', savedTheme === 'dark');
   
-// 1. Inicializar elementos del DOM
     itemList = document.getElementById('itemList');
     searchInput = document.getElementById('searchInput');
     loader = document.getElementById('loader');
     toast = document.getElementById('toast');    
 
- // 2. Configurar eventos
     searchInput.addEventListener('input', filterItems);
     document.getElementById('fileInput').addEventListener('change', handleFileUpload);
     
-  // 3. Cargar datos iniciales
-    loadFromCloud();
+    try {
+        await window.authReady; // Espera a la autenticación
+        await loadFromCloud(); // Carga los datos
+        setTimeout(saveFile, 1000); // Descarga tras 1 segundo (evita bloqueo)
+    } catch (error) {
+        showToast('❌ Error al cargar datos');
+        console.error(error);
+    }
 });
 
 // ========== FUNCIONES PRINCIPALES ========== //
@@ -51,20 +52,23 @@ window.deleteCompletedItems = async function() {
     await saveToCloud();
 };
 
-
 // ========== FUNCIONES FIREBASE ========== //
+async function checkAuth() {
+    if (!window.firebaseSDK.auth.currentUser) {
+        throw new Error("Usuario no autenticado");
+    }
+}
+
 async function saveToCloud() {
     showLoader();
     try {
+        await checkAuth();
         const items = Array.from(itemList.children).map(li => ({
             item: li.querySelector('span').textContent,
             status: li.querySelector('input').checked
         }));
         
-        await window.firebaseSDK.set(
-            window.firebaseSDK.ref('stock'), 
-            items
-        );
+        await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), items);
         showToast('✅ Datos guardados');
     } catch (error) {
         showToast('❌ Error al guardar');
@@ -74,10 +78,10 @@ async function saveToCloud() {
     }
 }
 
-// Función modificada para cargar datos
 window.loadFromCloud = async function() {
     showLoader();
     try {
+        await checkAuth();
         const stockRef = window.firebaseSDK.ref('stock');
         const snapshot = await window.firebaseSDK.get(stockRef);
         
@@ -85,15 +89,155 @@ window.loadFromCloud = async function() {
         if (snapshot.exists()) {
             const items = snapshot.val();
             items.forEach(item => {
-                const li = createListItem(item.item, item.status); // <-- Pasamos el estado
+                const li = createListItem(item.item, item.status);
                 li.classList.toggle('completed', item.status);
                 itemList.appendChild(li);
             });
         }
+    } catch (error) {
+        showToast('❌ Error al cargar');
+        console.error(error);
     } finally {
         hideLoader();
     }
 };
+
+// ========== FUNCIONES AUXILIARES ========== //
+function filterItems() {
+    const term = searchInput.value.trim().toLowerCase();
+    const searchWords = term.split(' ').filter(word => word.length > 0);
+    
+    Array.from(itemList.children).forEach(li => {
+        const text = li.querySelector('span').textContent.toLowerCase();
+        const match = searchWords.every(word => text.includes(word));
+        li.style.display = match ? 'flex' : 'none';
+    });
+}
+
+function createListItem(text, status = false) {
+    const li = document.createElement('li');
+    const label = document.createElement('label');
+    label.className = 'checkbox-container';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = status;
+
+    checkbox.addEventListener('change', async () => {
+        li.classList.toggle('completed', checkbox.checked);
+        await saveToCloud();
+    });
+    
+    const customCheckbox = document.createElement('div');
+    customCheckbox.className = 'checkbox-custom';
+    
+    const span = document.createElement('span');
+    span.textContent = text;
+    span.addEventListener('click', () => {
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
+    });
+
+    label.append(checkbox, customCheckbox);
+    li.append(label, span);
+    return li;
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove('toast-hidden');
+    setTimeout(() => toast.classList.add('toast-hidden'), 3000);
+}
+
+function showLoader() {
+    loader.classList.remove('loader-hidden');
+    loader.classList.add('loader');
+}
+
+function hideLoader() {
+    loader.classList.add('loader-hidden');
+}
+
+window.toggleTheme = function() {
+    document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', 
+        document.body.classList.contains('dark-theme') ? 'dark' : 'light'
+    );
+};
+
+window.handleKeyPress = function(e) {
+    if (e.key === 'Enter') addItem();
+};
+
+window.saveFile = function() {
+    try {
+        const items = Array.from(itemList.children).map(li => ({
+            Item: li.querySelector('span').textContent,
+            Estado: li.querySelector('input').checked ? "Completado" : "Pendiente"
+        }));
+
+        if (items.length === 0) {
+            showToast('ℹ️ No hay datos para exportar');
+            return;
+        }
+
+        const worksheet = XLSX.utils.json_to_sheet(items);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Stock");
+        XLSX.writeFile(workbook, "stock.xlsx");
+        showToast('✅ Archivo guardado');
+    } catch (error) {
+        showToast('❌ Error al exportar');
+        console.error(error);
+    }
+};
+
+function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    readExcelFile(file)
+        .then(processExcelData)
+        .then(() => showToast('✅ Datos cargados desde Excel'))
+        .catch(error => {
+            showToast('❌ Error en el archivo');
+            console.error(error);
+        });
+}
+
+async function readExcelFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            resolve(workbook);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+async function processExcelData(workbook) {
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    
+    if (!jsonData[0]?.Item || !jsonData[0]?.Estado) {
+        throw new Error("Formato de archivo inválido");
+    }
+
+    itemList.innerHTML = "";
+    
+    jsonData.forEach(item => {
+        const li = createListItem(item.Item);
+        li.querySelector('input').checked = item.Estado === "Completado";
+        if (item.Estado === "Completado") li.classList.add('completed');
+        itemList.appendChild(li);
+    });
+    
+    await saveToCloud();
+}
+
 // ========== FUNCIONES AUXILIARES ========== //
 function filterItems() {
     const term = searchInput.value.trim().toLowerCase();

@@ -4,10 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/png" href="images/favicon.png" />
-        <!-- Favicon estándar -->
         <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
-        <!-- Para Apple devices -->
         <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
         <link rel="manifest" href="site.webmanifest" />
 
@@ -17,12 +15,16 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-            import {
-                getDatabase,
-                ref,
-                get,
-                set
+            import { 
+                getDatabase, 
+                ref, 
+                get, 
+                set 
             } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+            import { 
+                getAuth, 
+                signInWithEmailAndPassword 
+            } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
             const firebaseConfig = {
                 apiKey: "AIzaSyCgN-hEWl1na0yvUdDLxEzrTjAyNh0gsxI",
@@ -35,13 +37,26 @@
             };
 
             const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app); // Nombre de variable corregido
+            const db = getDatabase(app);
+            const auth = getAuth(app);
 
-            window.firebaseSDK = {
-                db: db, // Usamos la variable correcta
-                ref: (path) => ref(db, path),
-                get: get,
-                set: set
+            // ⚠️¡¡¡REEMPLAZA CON TUS CREDENCIALES!!!
+            const FIREBASE_USER = "elreparosario@gmail.com"; 
+            const FIREBASE_PASSWORD = "4562512";
+
+            // Autenticación automática
+  window.authReady = signInWithEmailAndPassword(auth, FIREBASE_USER, FIREBASE_PASSWORD)
+        .catch((error) => {
+            console.error("Error de autenticación:", error);
+            alert("Error crítico: No se pudo conectar a la base de datos");
+        });
+
+    window.firebaseSDK = { 
+        db: db,
+        ref: (path) => ref(db, path),
+        get: get,
+        set: set,
+        auth: auth
             };
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -72,11 +87,10 @@
                     Eliminar Seleccionados
                 </button>
             </div>
-            <!-- Botón Guardar en Excel -->
+
             <div class="buttons-row excel-buttons">
                 <button onclick="saveFile()" title="Guardar en Excel" class="excel-save-btn">
                     <i class="fas fa-save"></i>
-                    <!-- Icono de guardado -->
                     Guardar Excel
                 </button>
 
@@ -90,7 +104,7 @@
 
                 <input type="file" id="fileInput" accept=".xlsx" hidden />
             </div>
-            <!-- Asegúrate de que este elemento EXISTE -->
+
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Buscar item..." autocomplete="off" />
             </div>
