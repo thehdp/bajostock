@@ -1,2 +1,0 @@
-# bajostock
-bajostockerpc
