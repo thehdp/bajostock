@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- Favicons y manifest (sin cambios) -->
         <link rel="icon" type="image/png" href="images/favicon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
@@ -10,9 +11,437 @@
         <link rel="manifest" href="site.webmanifest" />
 
         <title>FALTANTE DE STOCK</title>
-        <link rel="stylesheet" href="styles.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        
+        <style>
+            /* CSS EMBEBIDO */
+            /* Tema claro (por defecto) */
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                margin: 0;
+                padding: 20px; 
+                display: flex;
+                justify-content: center;
+                align-items: flex-start; 
+                min-height: 100vh; 
+                box-sizing: border-box;
+            }
+
+            .container {
+                background-color: #fff;
+                padding: 25px;
+                border-radius: 15px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                width: 100%; 
+                max-width: 600px; 
+                position: relative;
+                box-sizing: border-box;
+            }
+
+            h1 {
+                text-align: center;
+                margin-top: 0; 
+                margin-bottom: 20px; 
+                font-size: 24px;
+                color: #333;
+                font-weight: 600;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+            .input-box {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px; 
+                width: 100%;
+                gap: 10px; 
+            }
+
+            input[type="text"] {
+                flex-grow: 1; 
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 14px;
+                color: #333;
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+            }
+
+            input[type="text"]:focus {
+                border-color: #28a745; 
+                outline: none;
+            }
+
+            button {
+                padding: 10px 15px; 
+                background-color: #28a745; 
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s ease; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                gap: 8px; 
+                line-height: 1.2; 
+            }
+
+            button:hover {
+                opacity: 0.85; 
+                transform: scale(1.03); 
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .items-box {
+                border: 2px solid #eee;
+                border-radius: 8px;
+                max-height: 40vh; 
+                overflow-y: auto; 
+                margin: 20px 0; 
+                background-color: #fdfdfd; 
+            }
+
+            ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            li {
+                display: flex;
+                align-items: center;
+                padding: 12px 15px; 
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                transition: background-color 0.2s ease; 
+            }
+
+            li:hover {
+                background-color: #f0f0f0;
+            }
+
+            li:last-child {
+                border-bottom: none; 
+            }
+
+            li.completed span { 
+                text-decoration: line-through;
+                color: #888;
+                font-style: italic;
+            }
+
+            .checkbox-container {
+                display: inline-flex; 
+                align-items: center;
+                cursor: pointer;
+                margin-right: 12px; 
+                vertical-align: middle; 
+            }
+
+            .checkbox-container input[type="checkbox"] {
+                display: none; 
+            }
+
+            .checkbox-custom {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #28a745; 
+                border-radius: 5px;
+                position: relative;
+                transition: background-color 0.2s ease, border-color 0.2s ease;
+            }
+
+            .checkbox-custom::after { 
+                content: "✓";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0); 
+                font-size: 16px; 
+                color: #fff; 
+                opacity: 0;
+                transition: all 0.2s ease;
+            }
+
+            .checkbox-container input[type="checkbox"]:checked + .checkbox-custom {
+                background-color: #28a745; 
+                border-color: #218838; 
+            }
+
+            .checkbox-container input[type="checkbox"]:checked + .checkbox-custom::after {
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1;
+            }
+
+            body.dark-theme {
+                background: #121212;
+                color: #e0e0e0; 
+            }
+
+            body.dark-theme .container {
+                background: #1e1e1e;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); 
+            }
+
+            body.dark-theme h1 {
+                color: #ffffff;
+            }
+
+            body.dark-theme input[type="text"] {
+                background-color: #2c2c2c; 
+                color: #e0e0e0;
+                border-color: #444444;
+            }
+
+            body.dark-theme input[type="text"]:focus {
+                border-color: #28a745; 
+            }
+
+            body.dark-theme button {
+                background-color: #005221; 
+                color: #ffffff;
+            }
+            body.dark-theme button:hover {
+                background-color: #00672a; 
+            }
+
+            body.dark-theme .items-box {
+                background-color: #252525; 
+                border-color: #444444;
+            }
+
+            body.dark-theme li {
+                border-bottom-color: #3a3a3a; 
+                color: #e0e0e0;
+            }
+
+            body.dark-theme li:hover {
+                background-color: #333333; 
+            }
+
+            body.dark-theme li.completed span { 
+                color: #777; 
+            }
+
+            body.dark-theme .checkbox-custom {
+                border-color: #28a745; 
+            }
+
+            body.dark-theme .checkbox-container input[type="checkbox"]:checked + .checkbox-custom {
+                background-color: #28a745; 
+                border-color: #218838;
+            }
+            body.dark-theme .checkbox-custom::after {
+                 color: #1e1e1e; 
+            }
+
+            .theme-toggle {
+                color: #00b4d8 !important; 
+                background: transparent !important;
+                border: 2px solid #00b4d8 !important;
+                padding: 8px !important; 
+                font-size: 18px;
+                width: 40px;  
+                height: 40px; 
+            }
+
+            .theme-toggle:hover {
+                color: #0096c7 !important; 
+                border-color: #0096c7 !important;
+                background-color: rgba(0, 180, 216, 0.1) !important; 
+            }
+
+            body.dark-theme .theme-toggle {
+                color: #ffffff !important; 
+                border-color: #ffffff !important;
+            }
+            body.dark-theme .theme-toggle:hover {
+                color: #ade8f4 !important; 
+                border-color: #ade8f4 !important;
+                background-color: rgba(255, 255, 255, 0.1) !important;
+            }
+
+            #toast {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #333; 
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 1000; 
+                transition: opacity 0.3s ease, transform 0.3s ease; 
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            }
+
+            .toast-hidden {
+                opacity: 0;
+                pointer-events: none; 
+                transform: translate(-50%, 20px); 
+            }
+
+            .toast-visible {
+                opacity: 1;
+                transform: translateX(-50%); 
+            }
+            #toast.success { background-color: #28a745; } 
+            #toast.error { background-color: #dc3545; } 
+            #toast.info { background-color: #17a2b8; } 
+
+            .fas {
+                font-size: 16px; 
+                margin-right: 5px; 
+            }
+            button .fas { 
+                margin-right: 0;
+            }
+
+            .buttons {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px; 
+                margin-bottom: 15px; 
+                flex-wrap: wrap; 
+            }
+
+            .buttons .cloud-save-btn,
+            .buttons .cloud-load-btn {
+                width: 40px; 
+                height: 40px; 
+                padding: 8px; 
+            }
+            .buttons .cloud-save-btn .fas, 
+            .buttons .cloud-load-btn .fas {
+                font-size: 18px; 
+                margin: 0; 
+            }
+
+            .delete-button,
+            .excel-save-btn,
+            .excel-load-btn,
+            .csv-check-btn { /* Añadida clase para el nuevo botón CSV */
+                min-width: 160px; 
+                height: 40px;
+                padding: 0 15px; 
+            }
+            .delete-button .fas,
+            .excel-save-btn .fas,
+            .excel-load-btn .fas,
+            .csv-check-btn .fas { /* Añadida clase para el nuevo botón CSV */
+                font-size: 14px; 
+            }
+
+            .cloud-save-btn { background-color: #17a2b8; } 
+            .cloud-save-btn:hover { background-color: #138496; }
+
+            .cloud-load-btn { background-color: #6f42c1; } 
+            .cloud-load-btn:hover { background-color: #5a3d8c; }
+
+            .delete-button { background-color: #dc3545; } 
+            .delete-button:hover { background-color: #c82333; }
+
+            body.dark-theme .cloud-save-btn { background-color: #138496; }
+            body.dark-theme .cloud-save-btn:hover { background-color: #0f6778; }
+            body.dark-theme .cloud-load-btn { background-color: #5a3d8c; }
+            body.dark-theme .cloud-load-btn:hover { background-color: #4d3378; }
+            body.dark-theme .delete-button { background-color: #c82333; }
+            body.dark-theme .delete-button:hover { background-color: #ad1c2b; }
+
+            .buttons-row { /* Clase genérica para filas de botones */
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 10px; /* Reducido el margen inferior */
+                flex-wrap: wrap;
+            }
+            
+            .excel-buttons { /* Ya existe, se mantiene */
+                 margin-bottom: 20px; /* Espacio antes de la caja de búsqueda */
+            }
+
+            .excel-save-btn { background-color: #28a745; } 
+            .excel-save-btn:hover { background-color: #218838; }
+
+            .excel-load-btn { background-color: #ff6b35; } 
+            .excel-load-btn:hover { background-color: #e65c2e; }
+
+            /* Estilos para el nuevo botón CSV */
+            .csv-check-btn { background-color: #fd7e14; } /* Naranja diferente para CSV */
+            .csv-check-btn:hover { background-color: #e6690b; }
+
+
+            body.dark-theme .excel-save-btn { background-color: #218838; }
+            body.dark-theme .excel-save-btn:hover { background-color: #1c6e2e; }
+            body.dark-theme .excel-load-btn { background-color: #e65c2e; }
+            body.dark-theme .excel-load-btn:hover { background-color: #cc5228; }
+            body.dark-theme .csv-check-btn { background-color: #e6690b; } /* Naranja CSV en tema oscuro */
+            body.dark-theme .csv-check-btn:hover { background-color: #cf5c0a; }
+
+
+            .search-box {
+                width: 100%; 
+            }
+
+            #searchInput {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 14px;
+                color: #333;
+                transition: border-color 0.3s ease;
+                box-sizing: border-box; 
+            }
+
+            #searchInput:focus {
+                border-color: #28a745;
+                outline: none;
+            }
+
+            body.dark-theme #searchInput {
+                background-color: #2c2c2c;
+                color: #e0e0e0;
+                border-color: #444;
+            }
+
+            .loader { 
+                border: 5px solid #f3f3f3; 
+                border-top: 5px solid #28a745; 
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                position: absolute; 
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%); 
+                z-index: 1001; 
+            }
+            .loader-hidden { 
+                display: none;
+            }
+
+            @keyframes spin {
+                0% { transform: translate(-50%, -50%) rotate(0deg); }
+                100% { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+
+            body.dark-theme .loader {
+                border-top-color: #218838; 
+                border-color: #444; 
+                border-top-color: #28a745; 
+            }
+        </style>
+        
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
             import { 
@@ -40,74 +469,574 @@
             const db = getDatabase(app);
             const auth = getAuth(app);
 
-            // ⚠️¡¡¡REEMPLAZA CON TUS CREDENCIALES!!!
             const FIREBASE_USER = "elreparosario@gmail.com"; 
             const FIREBASE_PASSWORD = "4562512";
 
-            // Autenticación automática
-  window.authReady = signInWithEmailAndPassword(auth, FIREBASE_USER, FIREBASE_PASSWORD)
-        .catch((error) => {
-            console.error("Error de autenticación:", error);
-            alert("Error crítico: No se pudo conectar a la base de datos");
-        });
+            window.authReady = signInWithEmailAndPassword(auth, FIREBASE_USER, FIREBASE_PASSWORD)
+                .catch((error) => {
+                    console.error("Error de autenticación:", error);
+                    const toastElemCheck = document.getElementById('toast');
+                    if (toastElemCheck && window.showToast) { 
+                        window.showToast("Error crítico: No se pudo conectar a la base de datos. Revisa tus credenciales de Firebase en el HTML.", "error");
+                    } else {
+                        alert("Error crítico: No se pudo conectar a la base de datos. Revisa tus credenciales de Firebase en el HTML.");
+                    }
+                });
 
-    window.firebaseSDK = { 
-        db: db,
-        ref: (path) => ref(db, path),
-        get: get,
-        set: set,
-        auth: auth
+            window.firebaseSDK = { 
+                db: db,
+                ref: (path) => ref(db, path), 
+                get: get, 
+                set: set, 
+                auth: auth 
             };
         </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <script src="script.js" defer></script>
+        <script defer>
+            // JAVASCRIPT EMBEBIDO
+            let itemListElem, searchInputElem, itemInputElem, loaderElem, toastElem, fileInputExcelElem, csvFileInputElem; // Renombrado fileInputElem a fileInputExcelElem
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                itemListElem = document.getElementById('itemList');
+                searchInputElem = document.getElementById('searchInput');
+                itemInputElem = document.getElementById('itemInput');
+                loaderElem = document.getElementById('loader');
+                toastElem = document.getElementById('toast');
+                fileInputExcelElem = document.getElementById('fileInputExcel'); // Actualizado el nombre
+                csvFileInputElem = document.getElementById('fileInputCsv'); 
+
+                initializeUI();
+
+                try {
+                    showLoader();
+                    await window.authReady; 
+                    await loadItemsFromCloud(); 
+                } catch (error) {
+                    console.error("Error en la inicialización (autenticación/carga Firebase):", error);
+                    if (typeof showToast === 'function') {
+                        showToast('❌ Error crítico al conectar con la base de datos.', 'error');
+                    } else {
+                        alert('❌ Error crítico al conectar con la base de datos.');
+                    }
+                } finally {
+                    hideLoader();
+                }
+            });
+
+            function initializeUI() {
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+                updateThemeToggleButton(savedTheme === 'dark');
+
+                itemInputElem.addEventListener('keypress', handleItemInputKeyPress);
+                searchInputElem.addEventListener('input', filterDisplayedItems);
+
+                document.getElementById('addItemBtn').addEventListener('click', handleAddItem);
+                document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+                document.getElementById('saveToCloudBtn').addEventListener('click', async () => {
+                    await saveItemsToCloud(); 
+                    showToast('☁️ Datos guardados en la nube.', 'success'); 
+                });
+                document.getElementById('loadFromCloudBtn').addEventListener('click', loadItemsFromCloud);
+                document.getElementById('deleteCompletedBtn').addEventListener('click', handleDeleteCompletedItems);
+                
+                // Botones y Lógica de Excel
+                document.getElementById('saveExcelBtn').addEventListener('click', saveItemsToExcel);
+                document.getElementById('loadExcelBtnTrigger').addEventListener('click', () => fileInputExcelElem.click()); 
+                fileInputExcelElem.addEventListener('change', handleExcelFileUpload);
+
+                // Botones y Lógica de CSV 
+                document.getElementById('csvCheckBtnTrigger').addEventListener('click', () => csvFileInputElem.click());
+                csvFileInputElem.addEventListener('change', handleCSVStockCheckUpload);
+            }
+
+            function createListItemElement(text, isCompleted = false) {
+                const li = document.createElement('li');
+                li.classList.toggle('completed', isCompleted); 
+
+                const label = document.createElement('label');
+                label.className = 'checkbox-container';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = isCompleted;
+                checkbox.addEventListener('change', async () => {
+                    li.classList.toggle('completed', checkbox.checked);
+                    await saveItemsToCloud(); 
+                });
+
+                const customCheckbox = document.createElement('div');
+                customCheckbox.className = 'checkbox-custom';
+
+                const span = document.createElement('span');
+                span.textContent = text;
+                span.addEventListener('click', () => {
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change')); 
+                });
+
+                label.append(checkbox, customCheckbox);
+                li.append(label, span);
+                return li;
+            }
+
+            function renderItemList(items) {
+                itemListElem.innerHTML = ""; 
+                if (items && items.length > 0) {
+                    items.forEach(itemData => {
+                        if (itemData && typeof itemData.item === 'string') {
+                            const li = createListItemElement(itemData.item, itemData.status || false);
+                            itemListElem.appendChild(li);
+                        } else {
+                            console.warn("Ítem inválido encontrado al renderizar:", itemData);
+                        }
+                    });
+                }
+            }
+
+            function getItemsFromDOM() {
+                return Array.from(itemListElem.children).map(li => {
+                    const span = li.querySelector('span');
+                    const checkbox = li.querySelector('input[type="checkbox"]');
+                    if (span && checkbox) {
+                        return {
+                            item: span.textContent,
+                            status: checkbox.checked
+                        };
+                    }
+                    return null; 
+                }).filter(item => item !== null); 
+            }
+
+            async function handleAddItem() {
+                const itemText = itemInputElem.value.trim();
+                if (!itemText) {
+                    showToast('ℹ️ El campo para añadir ítem está vacío.', 'info');
+                    return;
+                }
+
+                const currentItems = getItemsFromDOM();
+                if (currentItems.some(item => item.item.toLowerCase() === itemText.toLowerCase())) {
+                    showToast('⚠️ El ítem ya existe en la lista.', 'info');
+                    return;
+                }
+                
+                const newItem = { item: itemText, status: false };
+                itemInputElem.value = ''; 
+                const itemsToSave = [newItem, ...currentItems];
+                await saveItemsToCloud(itemsToSave); 
+                await loadItemsFromCloud(); 
+                showToast('✅ Ítem añadido correctamente.', 'success');
+            }
+
+            async function handleDeleteCompletedItems() {
+                const itemsToKeep = getItemsFromDOM().filter(item => !item.status);
+                const itemsDeletedCount = getItemsFromDOM().length - itemsToKeep.length;
+
+                if (itemsDeletedCount === 0) {
+                    showToast('ℹ️ No hay ítems completados para eliminar.', 'info');
+                    return;
+                }
+                
+                showLoader();
+                try {
+                    await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), itemsToKeep);
+                    renderItemList(itemsToKeep); 
+                    showToast(`🗑️ ${itemsDeletedCount} ítem(s) completado(s) eliminado(s).`, 'success');
+                } catch (error) {
+                    console.error("Error eliminando ítems completados:", error);
+                    showToast('❌ Error al eliminar ítems.', 'error');
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            function handleItemInputKeyPress(event) {
+                if (event.key === 'Enter') {
+                    handleAddItem();
+                }
+            }
+
+            function filterDisplayedItems() {
+                const searchTerm = searchInputElem.value.trim().toLowerCase();
+                const searchWords = searchTerm.split(' ').filter(word => word.length > 0);
+
+                Array.from(itemListElem.children).forEach(li => {
+                    const itemTextElem = li.querySelector('span');
+                    if (itemTextElem) { 
+                        const itemText = itemTextElem.textContent.toLowerCase();
+                        const isMatch = searchWords.every(word => itemText.includes(word));
+                        li.style.display = isMatch ? 'flex' : 'none';
+                    }
+                });
+            }
+
+            async function checkFirebaseAuthentication() {
+                if (!window.firebaseSDK || !window.firebaseSDK.auth || !window.firebaseSDK.auth.currentUser) {
+                    console.warn("Intento de operación en Firebase sin usuario autenticado.");
+                    throw new Error("Usuario no autenticado en Firebase.");
+                }
+            }
+
+            async function saveItemsToCloud(itemsToSave) {
+                showLoader();
+                try {
+                    await checkFirebaseAuthentication();
+                    const items = itemsToSave || getItemsFromDOM(); 
+                    await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), items);
+                } catch (error) {
+                    console.error("Error guardando en Firebase:", error);
+                    showToast('❌ Error al guardar datos en la nube.', 'error');
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            async function loadItemsFromCloud() {
+                showLoader();
+                try {
+                    await checkFirebaseAuthentication();
+                    const stockRef = window.firebaseSDK.ref('stock');
+                    const snapshot = await window.firebaseSDK.get(stockRef);
+
+                    if (snapshot.exists()) {
+                        const items = snapshot.val();
+                        if (Array.isArray(items)) { 
+                             renderItemList(items);
+                        } else { 
+                            renderItemList([]); 
+                            console.warn("Los datos de Firebase no son un array:", items);
+                            showToast('⚠️ Formato de datos incorrecto en la nube.', 'info');
+                        }
+                    } else {
+                        renderItemList([]); 
+                    }
+                } catch (error) {
+                    console.error("Error cargando desde Firebase:", error);
+                    showToast('❌ Error al cargar datos de la nube.', 'error');
+                    renderItemList([]); 
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // --- FUNCIONES DE EXCEL ---
+            function saveItemsToExcel() {
+                try {
+                    const items = getItemsFromDOM().map(item => ({
+                        Item: item.item, 
+                        Estado: item.status ? "Completado" : "Pendiente"
+                    }));
+
+                    if (items.length === 0) {
+                        showToast('ℹ️ No hay datos para exportar a Excel.', 'info');
+                        return;
+                    }
+
+                    const worksheet = XLSX.utils.json_to_sheet(items);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Faltante"); 
+                    XLSX.writeFile(workbook, "stock_faltante.xlsx"); 
+                    showToast('✅ Archivo Excel guardado: stock_faltante.xlsx', 'success');
+                } catch (error) {
+                    console.error("Error al exportar a Excel:", error);
+                    showToast('❌ Error al exportar archivo Excel.', 'error');
+                }
+            }
+
+            async function handleExcelFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                showLoader();
+                try {
+                    const workbook = await readExcelFilePromise(file); // Esta función ahora es solo para Excel
+                    const jsonData = parseExcelWorkbook(workbook);
+                    
+                    const itemsFromExcel = jsonData.map(row => ({
+                        item: String(row.Item || row.item || '').trim(), 
+                        status: (String(row.Estado || row.estado || '').toLowerCase() === "completado") 
+                    })).filter(item => item.item); 
+
+                    await saveItemsToCloud(itemsFromExcel); 
+                    renderItemList(itemsFromExcel); 
+                    showToast('✅ Datos cargados desde Excel y guardados en la nube.', 'success');
+                } catch (error) {
+                    console.error("Error al procesar archivo Excel:", error);
+                    showToast(`❌ ${error.message || 'Error en el archivo Excel.'}`, 'error');
+                } finally {
+                    hideLoader();
+                    event.target.value = null; 
+                }
+            }
+
+            function readExcelFilePromise(file) { 
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            resolve(workbook);
+                        } catch (err) {
+                            reject(new Error("No se pudo leer el archivo Excel. Puede estar dañado o en un formato incorrecto."));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("Error al leer el archivo Excel."));
+                    reader.readAsArrayBuffer(file); // Excel siempre como ArrayBuffer
+                });
+            }
+
+            function parseExcelWorkbook(workbook) {
+                const firstSheetName = workbook.SheetNames[0];
+                if (!firstSheetName) {
+                    throw new Error("El archivo Excel no contiene hojas.");
+                }
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                if (jsonData.length > 0) {
+                    const firstRow = jsonData[0];
+                    const hasItemColumn = firstRow.hasOwnProperty('Item') || firstRow.hasOwnProperty('item');
+                    const hasEstadoColumn = firstRow.hasOwnProperty('Estado') || firstRow.hasOwnProperty('estado');
+                    if (!hasItemColumn || !hasEstadoColumn) {
+                         throw new Error("Formato de archivo Excel inválido. Columnas esperadas: 'Item' (o 'item') y 'Estado' (o 'estado').");
+                    }
+                } else if (workbook.SheetNames.length > 0 && XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header:1}).length === 0) {
+                    return []; 
+                }
+                return jsonData;
+            }
+
+            // --- FUNCIONES DE CSV (NUEVAS Y AJUSTADAS) ---
+            async function handleCSVStockCheckUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    showToast('⚠️ Por favor, selecciona un archivo CSV.', 'error');
+                    event.target.value = null; 
+                    return;
+                }
+
+                showLoader();
+                try {
+                    const csvText = await readCSVFilePromise(file); 
+                    const csvProducts = parseCSVData(csvText); // Ajustada para punto y coma
+                    if (!csvProducts) return; 
+
+                    await processCSVStockData(csvProducts);
+
+                } catch (error) {
+                    console.error("Error al procesar archivo CSV:", error);
+                    showToast(`❌ ${error.message || 'Error en el archivo CSV.'}`, 'error');
+                } finally {
+                    hideLoader();
+                    event.target.value = null; 
+                }
+            }
+
+            function readCSVFilePromise(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(new Error("Error al leer el archivo CSV."));
+                    reader.readAsText(file, 'UTF-8'); 
+                });
+            }
+            
+            function parseCSVData(csvText) {
+                try {
+                    const lines = csvText.split(/\r\n|\n/); 
+                    if (lines.length < 2) {
+                        showToast('⚠️ El archivo CSV está vacío o no tiene encabezados.', 'error');
+                        return null;
+                    }
+
+                    // AJUSTE: Usar punto y coma como delimitador
+                    const headers = lines[0].split(';').map(header => header.trim().toLowerCase().replace(/"/g, '')); // Quitar comillas de encabezados
+                    
+                    const requiredHeaders = ['nombre', 'stock', 'stock_min'];
+                    for (const reqHeader of requiredHeaders) {
+                        if (!headers.includes(reqHeader)) {
+                            showToast(`⚠️ El archivo CSV debe contener la columna "${reqHeader}". Se encontraron: ${headers.join(', ')}`, 'error');
+                            return null;
+                        }
+                    }
+
+                    const products = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim() === "") continue; 
+
+                        // AJUSTE: Usar punto y coma como delimitador para los valores
+                        const values = lines[i].split(';').map(value => value.trim().replace(/"/g, '')); // Quitar comillas de valores
+                        const product = {};
+                        headers.forEach((header, index) => {
+                            product[header] = values[index] || ''; // Asignar valor o string vacío
+                        });
+                        products.push(product);
+                    }
+                    return products;
+                } catch (e) {
+                    console.error("Error parseando CSV:", e);
+                    showToast('❌ Error al parsear el archivo CSV. Verifica el formato y el delimitador (debe ser punto y coma).', 'error');
+                    return null;
+                }
+            }
+
+            async function processCSVStockData(csvProducts) {
+                showLoader();
+                let itemsFromFirebase = getItemsFromDOM(); 
+                let itemsUpdated = false;
+                let itemsEliminadosCount = 0;
+                let notificaciones = []; // Para agrupar notificaciones
+
+                for (const csvProduct of csvProducts) {
+                    const nombreCsv = String(csvProduct.nombre || '').trim().toLowerCase();
+                    // Intentar parsear stock y stock_min, manejar posibles errores si no son números válidos
+                    let stockCsv = NaN;
+                    let stockMinCsv = NaN;
+
+                    if (csvProduct.stock !== undefined && csvProduct.stock !== null && csvProduct.stock !== '') {
+                        stockCsv = parseInt(String(csvProduct.stock).replace(/\./g, ''), 10); // Quitar puntos de miles si los hay
+                    }
+                     if (csvProduct.stock_min !== undefined && csvProduct.stock_min !== null && csvProduct.stock_min !== '') {
+                        stockMinCsv = parseInt(String(csvProduct.stock_min).replace(/\./g, ''), 10);
+                    }
+
+
+                    if (!nombreCsv) continue; 
+
+                    if (isNaN(stockCsv) || isNaN(stockMinCsv)) {
+                        console.warn(`Producto "${csvProduct.nombre}" en CSV con stock ("${csvProduct.stock}") o stock_min ("${csvProduct.stock_min}") inválido. Se omite.`);
+                        continue; 
+                    }
+
+                    const itemIndexInFirebase = itemsFromFirebase.findIndex(
+                        itemFb => String(itemFb.item || '').trim().toLowerCase() === nombreCsv
+                    );
+
+                    if (itemIndexInFirebase !== -1) { 
+                        if (stockCsv > 0 && stockCsv > stockMinCsv) {
+                            notificaciones.push(`"${csvProduct.nombre}" con stock (${stockCsv} > ${stockMinCsv}) eliminado de faltantes.`);
+                            itemsFromFirebase.splice(itemIndexInFirebase, 1); 
+                            itemsUpdated = true;
+                            itemsEliminadosCount++;
+                        }
+                    }
+                }
+
+                if (notificaciones.length > 0) {
+                    // Mostrar un resumen de notificaciones si son muchas, o individuales si son pocas
+                    if (notificaciones.length > 3) {
+                        showToast(`ℹ️ ${notificaciones.length} productos actualizados desde CSV. Revisa la consola para detalles.`, 'info');
+                        notificaciones.forEach(n => console.log(n));
+                    } else {
+                        notificaciones.forEach(n => showToast(n, 'info'));
+                    }
+                }
+
+
+                if (itemsUpdated) {
+                    await saveItemsToCloud(itemsFromFirebase); 
+                    renderItemList(itemsFromFirebase); 
+                    showToast(`✅ Verificación CSV: ${itemsEliminadosCount} producto(s) eliminado(s).`, 'success');
+                } else {
+                    showToast('ℹ️ Verificación CSV: No se eliminaron productos.', 'info');
+                }
+                hideLoader();
+            }
+
+
+            // --- FUNCIONES UTILITARIAS DE UI ---
+            function toggleTheme() {
+                const isDark = document.body.classList.toggle('dark-theme');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeToggleButton(isDark);
+            }
+
+            function updateThemeToggleButton(isDark) {
+                const themeToggleBtn = document.getElementById('themeToggleBtn');
+                if (themeToggleBtn) {
+                    themeToggleBtn.textContent = isDark ? '☀️' : '🌙'; 
+                    themeToggleBtn.title = isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro';
+                }
+            }
+            
+            let toastTimeoutId = null;
+            function showToast(message, type = 'info') { 
+                if(toastTimeoutId) {
+                    clearTimeout(toastTimeoutId); 
+                }
+
+                toastElem.textContent = message;
+                toastElem.className = 'toast-hidden'; 
+                
+                void toastElem.offsetWidth; 
+
+                toastElem.classList.add('toast-visible', type);
+
+                toastTimeoutId = setTimeout(() => {
+                    toastElem.classList.remove('toast-visible');
+                    toastElem.classList.add('toast-hidden');
+                }, 3500); 
+            }
+            window.showToast = showToast;
+
+
+            function showLoader() {
+                loaderElem.classList.remove('loader-hidden');
+            }
+
+            function hideLoader() {
+                loaderElem.classList.add('loader-hidden');
+            }
+        </script>
     </head>
     <body>
         <div class="container">
             <h1>FALTANTE DE STOCK</h1>
 
             <div class="input-box">
-                <input type="text" id="itemInput" placeholder="Añadir un item..." onkeypress="handleKeyPress(event)" />
-                <button onclick="addItem()">Añadir</button>
+                <input type="text" id="itemInput" placeholder="Añadir un ítem..." />
+                <button id="addItemBtn">Añadir</button>
             </div>
 
             <div class="buttons">
-                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-
-                <button onclick="saveToCloud()" title="Guardar en la nube" class="cloud-save-btn">
+                <button id="themeToggleBtn" class="theme-toggle" title="Cambiar tema">🌙</button>
+                <button id="saveToCloudBtn" title="Guardar en la nube" class="cloud-save-btn">
                     <i class="fas fa-cloud-upload-alt"></i>
                 </button>
-
-                <button onclick="loadFromCloud()" title="Cargar desde la nube" class="cloud-load-btn">
+                <button id="loadFromCloudBtn" title="Cargar desde la nube" class="cloud-load-btn">
                     <i class="fas fa-cloud-download-alt"></i>
                 </button>
-
-                <button onclick="deleteCompletedItems()" title="Eliminar completados" class="delete-button">
+                <button id="deleteCompletedBtn" title="Eliminar completados" class="delete-button">
                     <i class="fas fa-trash"></i>
                     Eliminar Seleccionados
                 </button>
             </div>
 
-            <div class="buttons-row excel-buttons">
-                <button onclick="saveFile()" title="Guardar en Excel" class="excel-save-btn">
+            <div class="buttons-row excel-buttons"> 
+                <button id="saveExcelBtn" title="Guardar en Excel" class="excel-save-btn">
                     <i class="fas fa-save"></i>
                     Guardar Excel
                 </button>
-
-                <button
-                    onclick="document.getElementById('fileInput').click()"
-                    title="Cargar desde Excel"
-                    class="excel-load-btn">
+                <button id="loadExcelBtnTrigger" title="Cargar desde Excel" class="excel-load-btn">
                     <i class="fas fa-file-upload"></i>
                     Cargar Excel
                 </button>
+                <input type="file" id="fileInputExcel" accept=".xlsx, .xls" hidden />
 
-                <input type="file" id="fileInput" accept=".xlsx" hidden />
+                <button id="csvCheckBtnTrigger" title="Verificar Stock con CSV" class="csv-check-btn">
+                    <i class="fas fa-file-csv"></i> 
+                    Verificar CSV
+                </button>
+                <input type="file" id="fileInputCsv" accept=".csv" hidden />
             </div>
+
 
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Buscar item..." autocomplete="off" />
+                <input type="text" id="searchInput" placeholder="Buscar ítem..." autocomplete="off" />
             </div>
+            
             <div class="items-box">
                 <ul id="itemList"></ul>
             </div>
