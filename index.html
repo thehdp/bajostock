@@ -328,7 +328,7 @@
             .delete-button,
             .excel-save-btn,
             .excel-load-btn,
-            .csv-check-btn { /* Añadida clase para el nuevo botón CSV */
+            .csv-check-btn { 
                 min-width: 160px; 
                 height: 40px;
                 padding: 0 15px; 
@@ -336,7 +336,7 @@
             .delete-button .fas,
             .excel-save-btn .fas,
             .excel-load-btn .fas,
-            .csv-check-btn .fas { /* Añadida clase para el nuevo botón CSV */
+            .csv-check-btn .fas { 
                 font-size: 14px; 
             }
 
@@ -356,16 +356,16 @@
             body.dark-theme .delete-button { background-color: #c82333; }
             body.dark-theme .delete-button:hover { background-color: #ad1c2b; }
 
-            .buttons-row { /* Clase genérica para filas de botones */
+            .buttons-row { 
                 display: flex;
                 justify-content: center;
                 gap: 10px;
-                margin-bottom: 10px; /* Reducido el margen inferior */
+                margin-bottom: 10px; 
                 flex-wrap: wrap;
             }
             
-            .excel-buttons { /* Ya existe, se mantiene */
-                 margin-bottom: 20px; /* Espacio antes de la caja de búsqueda */
+            .excel-buttons { 
+                 margin-bottom: 20px; 
             }
 
             .excel-save-btn { background-color: #28a745; } 
@@ -374,8 +374,7 @@
             .excel-load-btn { background-color: #ff6b35; } 
             .excel-load-btn:hover { background-color: #e65c2e; }
 
-            /* Estilos para el nuevo botón CSV */
-            .csv-check-btn { background-color: #fd7e14; } /* Naranja diferente para CSV */
+            .csv-check-btn { background-color: #fd7e14; } 
             .csv-check-btn:hover { background-color: #e6690b; }
 
 
@@ -383,7 +382,7 @@
             body.dark-theme .excel-save-btn:hover { background-color: #1c6e2e; }
             body.dark-theme .excel-load-btn { background-color: #e65c2e; }
             body.dark-theme .excel-load-btn:hover { background-color: #cc5228; }
-            body.dark-theme .csv-check-btn { background-color: #e6690b; } /* Naranja CSV en tema oscuro */
+            body.dark-theme .csv-check-btn { background-color: #e6690b; } 
             body.dark-theme .csv-check-btn:hover { background-color: #cf5c0a; }
 
 
@@ -493,7 +492,7 @@
         </script>
         <script defer>
             // JAVASCRIPT EMBEBIDO
-            let itemListElem, searchInputElem, itemInputElem, loaderElem, toastElem, fileInputExcelElem, csvFileInputElem; // Renombrado fileInputElem a fileInputExcelElem
+            let itemListElem, searchInputElem, itemInputElem, loaderElem, toastElem, fileInputExcelElem, csvFileInputElem; 
 
             document.addEventListener('DOMContentLoaded', async () => {
                 itemListElem = document.getElementById('itemList');
@@ -501,7 +500,7 @@
                 itemInputElem = document.getElementById('itemInput');
                 loaderElem = document.getElementById('loader');
                 toastElem = document.getElementById('toast');
-                fileInputExcelElem = document.getElementById('fileInputExcel'); // Actualizado el nombre
+                fileInputExcelElem = document.getElementById('fileInputExcel'); 
                 csvFileInputElem = document.getElementById('fileInputCsv'); 
 
                 initializeUI();
@@ -539,15 +538,39 @@
                 document.getElementById('loadFromCloudBtn').addEventListener('click', loadItemsFromCloud);
                 document.getElementById('deleteCompletedBtn').addEventListener('click', handleDeleteCompletedItems);
                 
-                // Botones y Lógica de Excel
                 document.getElementById('saveExcelBtn').addEventListener('click', saveItemsToExcel);
                 document.getElementById('loadExcelBtnTrigger').addEventListener('click', () => fileInputExcelElem.click()); 
                 fileInputExcelElem.addEventListener('change', handleExcelFileUpload);
 
-                // Botones y Lógica de CSV 
                 document.getElementById('csvCheckBtnTrigger').addEventListener('click', () => csvFileInputElem.click());
                 csvFileInputElem.addEventListener('change', handleCSVStockCheckUpload);
             }
+
+            function removeDuplicates(itemsArray) {
+                if (!Array.isArray(itemsArray)) return [];
+                const seenNames = new Set();
+                const uniqueItems = [];
+                let duplicatesFound = 0;
+
+                for (const itemObj of itemsArray) {
+                    if (itemObj && typeof itemObj.item === 'string') {
+                        const itemNameLower = itemObj.item.trim().toLowerCase();
+                        if (!seenNames.has(itemNameLower)) {
+                            seenNames.add(itemNameLower);
+                            uniqueItems.push(itemObj);
+                        } else {
+                            duplicatesFound++;
+                        }
+                    } else {
+                        console.warn("Ítem inválido encontrado durante la eliminación de duplicados:", itemObj);
+                    }
+                }
+                if (duplicatesFound > 0) {
+                    console.log(`Se encontraron y eliminaron ${duplicatesFound} duplicado(s).`);
+                }
+                return uniqueItems;
+            }
+
 
             function createListItemElement(text, isCompleted = false) {
                 const li = document.createElement('li');
@@ -615,13 +638,14 @@
                 }
 
                 const currentItems = getItemsFromDOM();
-                if (currentItems.some(item => item.item.toLowerCase() === itemText.toLowerCase())) {
+                if (currentItems.some(item => item.item.trim().toLowerCase() === itemText.toLowerCase())) {
                     showToast('⚠️ El ítem ya existe en la lista.', 'info');
                     return;
                 }
                 
                 const newItem = { item: itemText, status: false };
                 itemInputElem.value = ''; 
+                
                 const itemsToSave = [newItem, ...currentItems];
                 await saveItemsToCloud(itemsToSave); 
                 await loadItemsFromCloud(); 
@@ -639,8 +663,9 @@
                 
                 showLoader();
                 try {
-                    await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), itemsToKeep);
-                    renderItemList(itemsToKeep); 
+                    await saveItemsToCloud(itemsToKeep); 
+                    // En lugar de renderizar itemsToKeep, recargamos desde la nube para asegurar la última versión limpia
+                    await loadItemsFromCloud(); 
                     showToast(`🗑️ ${itemsDeletedCount} ítem(s) completado(s) eliminado(s).`, 'success');
                 } catch (error) {
                     console.error("Error eliminando ítems completados:", error);
@@ -681,7 +706,8 @@
                 showLoader();
                 try {
                     await checkFirebaseAuthentication();
-                    const items = itemsToSave || getItemsFromDOM(); 
+                    let items = itemsToSave || getItemsFromDOM(); 
+                    items = removeDuplicates(items); 
                     await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), items);
                 } catch (error) {
                     console.error("Error guardando en Firebase:", error);
@@ -698,18 +724,25 @@
                     const stockRef = window.firebaseSDK.ref('stock');
                     const snapshot = await window.firebaseSDK.get(stockRef);
 
+                    let itemsToRender = [];
+                    let itemsOriginalLength = 0;
                     if (snapshot.exists()) {
-                        const items = snapshot.val();
-                        if (Array.isArray(items)) { 
-                             renderItemList(items);
+                        const itemsFromFb = snapshot.val();
+                        if (Array.isArray(itemsFromFb)) { 
+                             itemsOriginalLength = itemsFromFb.length;
+                             itemsToRender = removeDuplicates(itemsFromFb); 
+                             if (itemsToRender.length < itemsOriginalLength) {
+                                // Hubo duplicados en Firebase, guardar la lista limpia
+                                console.log("Duplicados encontrados en Firebase, guardando lista limpia...");
+                                await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), itemsToRender); // No necesitamos saveItemsToCloud aquí porque ya está limpia
+                                // showToast('ℹ️ Se limpiaron ítems duplicados de la base de datos.', 'info');
+                             }
                         } else { 
-                            renderItemList([]); 
-                            console.warn("Los datos de Firebase no son un array:", items);
+                            console.warn("Los datos de Firebase no son un array:", itemsFromFb);
                             showToast('⚠️ Formato de datos incorrecto en la nube.', 'info');
                         }
-                    } else {
-                        renderItemList([]); 
                     }
+                    renderItemList(itemsToRender); 
                 } catch (error) {
                     console.error("Error cargando desde Firebase:", error);
                     showToast('❌ Error al cargar datos de la nube.', 'error');
@@ -722,17 +755,17 @@
             // --- FUNCIONES DE EXCEL ---
             function saveItemsToExcel() {
                 try {
-                    const items = getItemsFromDOM().map(item => ({
-                        Item: item.item, 
-                        Estado: item.status ? "Completado" : "Pendiente"
-                    }));
-
+                    const items = getItemsFromDOM(); 
                     if (items.length === 0) {
                         showToast('ℹ️ No hay datos para exportar a Excel.', 'info');
                         return;
                     }
+                    const itemsToExport = items.map(item => ({
+                        Item: item.item, 
+                        Estado: item.status ? "Completado" : "Pendiente"
+                    }));
 
-                    const worksheet = XLSX.utils.json_to_sheet(items);
+                    const worksheet = XLSX.utils.json_to_sheet(itemsToExport);
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Faltante"); 
                     XLSX.writeFile(workbook, "stock_faltante.xlsx"); 
@@ -749,16 +782,19 @@
 
                 showLoader();
                 try {
-                    const workbook = await readExcelFilePromise(file); // Esta función ahora es solo para Excel
+                    const workbook = await readExcelFilePromise(file); 
                     const jsonData = parseExcelWorkbook(workbook);
                     
-                    const itemsFromExcel = jsonData.map(row => ({
+                    let itemsFromExcel = jsonData.map(row => ({
                         item: String(row.Item || row.item || '').trim(), 
                         status: (String(row.Estado || row.estado || '').toLowerCase() === "completado") 
                     })).filter(item => item.item); 
 
+                    itemsFromExcel = removeDuplicates(itemsFromExcel); 
+
                     await saveItemsToCloud(itemsFromExcel); 
-                    renderItemList(itemsFromExcel); 
+                    // renderItemList(itemsFromExcel); // Reemplazado por loadItemsFromCloud para consistencia
+                    await loadItemsFromCloud();
                     showToast('✅ Datos cargados desde Excel y guardados en la nube.', 'success');
                 } catch (error) {
                     console.error("Error al procesar archivo Excel:", error);
@@ -782,7 +818,7 @@
                         }
                     };
                     reader.onerror = () => reject(new Error("Error al leer el archivo Excel."));
-                    reader.readAsArrayBuffer(file); // Excel siempre como ArrayBuffer
+                    reader.readAsArrayBuffer(file); 
                 });
             }
 
@@ -807,7 +843,7 @@
                 return jsonData;
             }
 
-            // --- FUNCIONES DE CSV (NUEVAS Y AJUSTADAS) ---
+            // --- FUNCIONES DE CSV ---
             async function handleCSVStockCheckUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -820,10 +856,11 @@
                 showLoader();
                 try {
                     const csvText = await readCSVFilePromise(file); 
-                    const csvProducts = parseCSVData(csvText); // Ajustada para punto y coma
+                    const csvProducts = parseCSVData(csvText); 
                     if (!csvProducts) return; 
 
                     await processCSVStockData(csvProducts);
+                    // Al final de processCSVStockData ya se llama a saveItemsToCloud y renderItemList (o loadItemsFromCloud implícitamente)
 
                 } catch (error) {
                     console.error("Error al procesar archivo CSV:", error);
@@ -851,8 +888,7 @@
                         return null;
                     }
 
-                    // AJUSTE: Usar punto y coma como delimitador
-                    const headers = lines[0].split(';').map(header => header.trim().toLowerCase().replace(/"/g, '')); // Quitar comillas de encabezados
+                    const headers = lines[0].split(';').map(header => header.trim().toLowerCase().replace(/"/g, '')); 
                     
                     const requiredHeaders = ['nombre', 'stock', 'stock_min'];
                     for (const reqHeader of requiredHeaders) {
@@ -866,11 +902,10 @@
                     for (let i = 1; i < lines.length; i++) {
                         if (lines[i].trim() === "") continue; 
 
-                        // AJUSTE: Usar punto y coma como delimitador para los valores
-                        const values = lines[i].split(';').map(value => value.trim().replace(/"/g, '')); // Quitar comillas de valores
+                        const values = lines[i].split(';').map(value => value.trim().replace(/"/g, '')); 
                         const product = {};
                         headers.forEach((header, index) => {
-                            product[header] = values[index] || ''; // Asignar valor o string vacío
+                            product[header] = values[index] || ''; 
                         });
                         products.push(product);
                     }
@@ -884,24 +919,24 @@
 
             async function processCSVStockData(csvProducts) {
                 showLoader();
+                await loadItemsFromCloud(); 
                 let itemsFromFirebase = getItemsFromDOM(); 
+
                 let itemsUpdated = false;
                 let itemsEliminadosCount = 0;
-                let notificaciones = []; // Para agrupar notificaciones
+                let notificaciones = []; 
 
                 for (const csvProduct of csvProducts) {
                     const nombreCsv = String(csvProduct.nombre || '').trim().toLowerCase();
-                    // Intentar parsear stock y stock_min, manejar posibles errores si no son números válidos
                     let stockCsv = NaN;
                     let stockMinCsv = NaN;
 
                     if (csvProduct.stock !== undefined && csvProduct.stock !== null && csvProduct.stock !== '') {
-                        stockCsv = parseInt(String(csvProduct.stock).replace(/\./g, ''), 10); // Quitar puntos de miles si los hay
+                        stockCsv = parseInt(String(csvProduct.stock).replace(/\./g, ''), 10); 
                     }
                      if (csvProduct.stock_min !== undefined && csvProduct.stock_min !== null && csvProduct.stock_min !== '') {
                         stockMinCsv = parseInt(String(csvProduct.stock_min).replace(/\./g, ''), 10);
                     }
-
 
                     if (!nombreCsv) continue; 
 
@@ -925,7 +960,6 @@
                 }
 
                 if (notificaciones.length > 0) {
-                    // Mostrar un resumen de notificaciones si son muchas, o individuales si son pocas
                     if (notificaciones.length > 3) {
                         showToast(`ℹ️ ${notificaciones.length} productos actualizados desde CSV. Revisa la consola para detalles.`, 'info');
                         notificaciones.forEach(n => console.log(n));
@@ -934,10 +968,10 @@
                     }
                 }
 
-
                 if (itemsUpdated) {
                     await saveItemsToCloud(itemsFromFirebase); 
-                    renderItemList(itemsFromFirebase); 
+                    // renderItemList(itemsFromFirebase); // Reemplazado por loadItemsFromCloud para consistencia
+                    await loadItemsFromCloud();
                     showToast(`✅ Verificación CSV: ${itemsEliminadosCount} producto(s) eliminado(s).`, 'success');
                 } else {
                     showToast('ℹ️ Verificación CSV: No se eliminaron productos.', 'info');
