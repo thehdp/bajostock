@@ -314,13 +314,15 @@
             }
 
             .buttons .cloud-save-btn,
-            .buttons .cloud-load-btn {
+            .buttons .cloud-load-btn,
+            .buttons .external-link-btn { /* Incluye el nuevo botón */
                 width: 40px; 
                 height: 40px; 
                 padding: 8px; 
             }
             .buttons .cloud-save-btn .fas, 
-            .buttons .cloud-load-btn .fas {
+            .buttons .cloud-load-btn .fas,
+            .buttons .external-link-btn .fas { /* Incluye el nuevo botón */
                 font-size: 18px; 
                 margin: 0; 
             }
@@ -349,12 +351,20 @@
             .delete-button { background-color: #dc3545; } 
             .delete-button:hover { background-color: #c82333; }
 
+            /* Estilo para el nuevo botón de enlace externo */
+            .external-link-btn { background-color: #007bff; } /* Azul distintivo */
+            .external-link-btn:hover { background-color: #0056b3; }
+
+
             body.dark-theme .cloud-save-btn { background-color: #138496; }
             body.dark-theme .cloud-save-btn:hover { background-color: #0f6778; }
             body.dark-theme .cloud-load-btn { background-color: #5a3d8c; }
             body.dark-theme .cloud-load-btn:hover { background-color: #4d3378; }
             body.dark-theme .delete-button { background-color: #c82333; }
             body.dark-theme .delete-button:hover { background-color: #ad1c2b; }
+            body.dark-theme .external-link-btn { background-color: #0056b3; }
+            body.dark-theme .external-link-btn:hover { background-color: #004085; }
+
 
             .buttons-row { 
                 display: flex;
@@ -538,6 +548,11 @@
                 document.getElementById('loadFromCloudBtn').addEventListener('click', loadItemsFromCloud);
                 document.getElementById('deleteCompletedBtn').addEventListener('click', handleDeleteCompletedItems);
                 
+                // NUEVO: Event listener para el botón de enlace externo
+                document.getElementById('openExternalLinkBtn').addEventListener('click', () => {
+                    window.open('https://script.google.com/home/projects/1qq9QtJUhr_5otF63t70TUdfkNXLDkNQp60grnThYXDZT7zbVztHrhpEs/edit', '_blank');
+                });
+
                 document.getElementById('saveExcelBtn').addEventListener('click', saveItemsToExcel);
                 document.getElementById('loadExcelBtnTrigger').addEventListener('click', () => fileInputExcelElem.click()); 
                 fileInputExcelElem.addEventListener('change', handleExcelFileUpload);
@@ -664,7 +679,6 @@
                 showLoader();
                 try {
                     await saveItemsToCloud(itemsToKeep); 
-                    // En lugar de renderizar itemsToKeep, recargamos desde la nube para asegurar la última versión limpia
                     await loadItemsFromCloud(); 
                     showToast(`🗑️ ${itemsDeletedCount} ítem(s) completado(s) eliminado(s).`, 'success');
                 } catch (error) {
@@ -732,10 +746,8 @@
                              itemsOriginalLength = itemsFromFb.length;
                              itemsToRender = removeDuplicates(itemsFromFb); 
                              if (itemsToRender.length < itemsOriginalLength) {
-                                // Hubo duplicados en Firebase, guardar la lista limpia
                                 console.log("Duplicados encontrados en Firebase, guardando lista limpia...");
-                                await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), itemsToRender); // No necesitamos saveItemsToCloud aquí porque ya está limpia
-                                // showToast('ℹ️ Se limpiaron ítems duplicados de la base de datos.', 'info');
+                                await window.firebaseSDK.set(window.firebaseSDK.ref('stock'), itemsToRender); 
                              }
                         } else { 
                             console.warn("Los datos de Firebase no son un array:", itemsFromFb);
@@ -793,7 +805,6 @@
                     itemsFromExcel = removeDuplicates(itemsFromExcel); 
 
                     await saveItemsToCloud(itemsFromExcel); 
-                    // renderItemList(itemsFromExcel); // Reemplazado por loadItemsFromCloud para consistencia
                     await loadItemsFromCloud();
                     showToast('✅ Datos cargados desde Excel y guardados en la nube.', 'success');
                 } catch (error) {
@@ -860,7 +871,6 @@
                     if (!csvProducts) return; 
 
                     await processCSVStockData(csvProducts);
-                    // Al final de processCSVStockData ya se llama a saveItemsToCloud y renderItemList (o loadItemsFromCloud implícitamente)
 
                 } catch (error) {
                     console.error("Error al procesar archivo CSV:", error);
@@ -970,7 +980,6 @@
 
                 if (itemsUpdated) {
                     await saveItemsToCloud(itemsFromFirebase); 
-                    // renderItemList(itemsFromFirebase); // Reemplazado por loadItemsFromCloud para consistencia
                     await loadItemsFromCloud();
                     showToast(`✅ Verificación CSV: ${itemsEliminadosCount} producto(s) eliminado(s).`, 'success');
                 } else {
@@ -1034,7 +1043,7 @@
                 <button id="addItemBtn">Añadir</button>
             </div>
 
-            <div class="buttons">
+            <div class="buttons"> <!-- Contenedor principal de botones de acción -->
                 <button id="themeToggleBtn" class="theme-toggle" title="Cambiar tema">🌙</button>
                 <button id="saveToCloudBtn" title="Guardar en la nube" class="cloud-save-btn">
                     <i class="fas fa-cloud-upload-alt"></i>
@@ -1044,11 +1053,15 @@
                 </button>
                 <button id="deleteCompletedBtn" title="Eliminar completados" class="delete-button">
                     <i class="fas fa-trash"></i>
-                    Eliminar Seleccionados
+                    Eliminar Seleccionados 
+                </button>
+                <!-- NUEVO BOTÓN DE ENLACE EXTERNO -->
+                <button id="openExternalLinkBtn" title="Abrir Script Externo" class="external-link-btn">
+                    <i class="fas fa-play"></i> <!-- Icono de Play/Start -->
                 </button>
             </div>
 
-            <div class="buttons-row excel-buttons"> 
+            <div class="buttons-row excel-buttons"> <!-- Fila separada para botones de archivos -->
                 <button id="saveExcelBtn" title="Guardar en Excel" class="excel-save-btn">
                     <i class="fas fa-save"></i>
                     Guardar Excel
